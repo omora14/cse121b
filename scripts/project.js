@@ -1,6 +1,3 @@
-// Import other modules if needed
-import { fetchData } from './data.js';
-
 const tasks = [];
 
 function addTask() {
@@ -17,24 +14,61 @@ function addTask() {
 }
 
 function displayTasks() {
-  // Existing displayTasks() code
-  // ...
+  const taskList = document.getElementById('task-list');
+  taskList.innerHTML = '';
 
-  // Sorting and filtering logic remains the same
-  // ...
+  const sortingOption = document.getElementById('sorting-option');
+  const filteringOption = document.getElementById('filtering-option');
+  const sortValue = sortingOption.value;
+  const filterValue = filteringOption.value;
 
-  // To ensure the data is always up to date, you can fetch data before displaying tasks
-  fetchData()
-    .then((data) => {
-      tasks = data;
+  const filteredTasks = tasks.filter(task => {
+    if (filterValue === 'completed') {
+      return task.completed;
+    } else if (filterValue === 'incomplete') {
+      return !task.completed;
+    }
+    return true; // 'all' (show all tasks)
+  });
+
+  filteredTasks.sort((a, b) => {
+    if (sortValue === 'name') {
+      return a.name.localeCompare(b.name);
+    } else if (sortValue === 'date') {
+      return new Date(a.date) - new Date(b.date);
+    } else if (sortValue === 'completed') {
+      return a.completed - b.completed;
+    }
+  });
+
+  for (let i = 0; i < filteredTasks.length; i++) {
+    const task = filteredTasks[i];
+
+    const taskItem = document.createElement('li');
+    taskItem.innerHTML = `
+      <input type="checkbox" ${task.completed ? 'checked' : ''}>
+      <span>${task.name}</span>
+      <span class="date">${task.date}</span>
+    `;
+
+    const checkbox = taskItem.querySelector('input');
+    checkbox.addEventListener('change', () => {
+      task.completed = checkbox.checked;
       displayTasks();
-    })
-    .catch((error) => console.error('Error fetching data:', error));
+    });
+
+    taskList.appendChild(taskItem);
+  }
 }
 
-// Add an event listener to the "Add Task" button
 const addButton = document.getElementById('add-task-button');
 addButton.addEventListener('click', addTask);
+
+const sortingOption = document.getElementById('sorting-option');
+sortingOption.addEventListener('change', displayTasks);
+
+const filteringOption = document.getElementById('filtering-option');
+filteringOption.addEventListener('change', displayTasks);
 
 // Display tasks initially
 displayTasks();
